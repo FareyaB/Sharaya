@@ -11,7 +11,7 @@ import ProductDetails from './screens/ProductDetails';
 import Search from './screens/Search';
 import Notifications from './screens/Notifications';
 import Account from './screens/Account';
-import CollectionDetails from './screens/CollectionDetails'; // New import
+import CollectionDetails from './screens/CollectionDetails'; // Add CollectionDetails
 
 const Stack = createStackNavigator();
 

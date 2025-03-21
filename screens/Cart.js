@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import BottomNav from '../components/BottomNav'; // Import BottomNav
+import BottomNav from '../components/BottomNav';
 
 const Cart = ({ navigation }) => {
   const [cartItems, setCartItems] = useState([]);
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   cartList: {
-    paddingBottom: 150, // Adjusted to account for nav bar and total container
+    paddingBottom: 150,
   },
   cartItem: {
     flexDirection: 'row',
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
   },
   totalContainer: {
     position: 'absolute',
-    bottom: 60, // Adjusted to sit above the nav bar
+    bottom: 60,
     left: 0,
     right: 0,
     backgroundColor: '#fff',

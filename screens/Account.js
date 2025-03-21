@@ -1,42 +1,53 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ScrollView, TextInput, Modal } from 'react-native';
+import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BottomNav from '../components/BottomNav';
 
-const Account = ({ navigation }) => {
-  const [activeTab, setActiveTab] = useState('Favorites');
-  const [favoriteItems, setFavoriteItems] = useState([]);
-  const [collections, setCollections] = useState([
-    { id: '1', name: 'For office', items: [] },
-    { id: '2', name: 'For Eid', items: [] },
-  ]);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [newCollectionName, setNewCollectionName] = useState('');
+// Placeholder data for followed accounts (to be replaced with backend data later)
+const followedAccounts = [
+  { id: '1', name: 'Gulnaaz Khan Fashion', username: 'gulnaazkhan', followers: '6.4k', profileImage: 'https://via.placeholder.com/40' },
+  { id: '2', name: 'Nameera by Fareya', username: 'nameera', followers: '143k', profileImage: 'https://via.placeholder.com/40' },
+  { id: '3', name: 'Gulnaaz Khan Fashion', username: 'gulnaazkhan2', followers: '6.4k', profileImage: 'https://via.placeholder.com/40' },
+  { id: '4', name: 'Nameera by Fareya', username: 'nameera2', followers: '143k', profileImage: 'https://via.placeholder.com/40' },
+  { id: '5', name: 'Gulnaaz Khan Fashion', username: 'gulnaazkhan3', followers: '6.4k', profileImage: 'https://via.placeholder.com/40' },
+  { id: '6', name: 'Nameera by Fareya', username: 'nameera3', followers: '143k', profileImage: 'https://via.placeholder.com/40' },
+  { id: '7', name: 'Gulnaaz Khan Fashion', username: 'gulnaazkhan4', followers: '6.4k', profileImage: 'https://via.placeholder.com/40' },
+];
 
-  // Load favorite items from AsyncStorage
+const Account = ({ navigation }) => {
+  const [favorites, setFavorites] = useState([]);
+  const [collections, setCollections] = useState([]);
+  const [following, setFollowing] = useState(followedAccounts.map(account => ({ ...account, isFollowing: true })));
+  const [activeTab, setActiveTab] = useState('Favorites');
+
+  // Load favorites and collections from AsyncStorage
   useEffect(() => {
-    const loadFavoriteItems = async () => {
+    const loadData = async () => {
       try {
-        const favoriteItemsString = await AsyncStorage.getItem('favoriteItems');
-        const items = favoriteItemsString ? JSON.parse(favoriteItemsString) : [];
-        setFavoriteItems(items);
+        const favoritesString = await AsyncStorage.getItem('favorites');
+        const favoritesData = favoritesString ? JSON.parse(favoritesString) : [];
+        setFavorites(favoritesData);
+
+        const collectionsString = await AsyncStorage.getItem('collections');
+        const collectionsData = collectionsString ? JSON.parse(collectionsString) : [];
+        setCollections(collectionsData);
       } catch (error) {
-        console.error('Error loading favorite items:', error);
+        console.error('Error loading account data:', error);
       }
     };
-    loadFavoriteItems();
+    loadData();
   }, []);
 
-  // Remove an item from favorites
+  // Remove an item from Favorites
   const removeFromFavorites = async (itemId) => {
     try {
-      const updatedFavorites = favoriteItems.filter((item) => item.id !== itemId);
-      setFavoriteItems(updatedFavorites);
-      await AsyncStorage.setItem('favoriteItems', JSON.stringify(updatedFavorites));
-      alert('Item removed from favorites.');
+      const updatedFavorites = favorites.filter((item) => item.id !== itemId);
+      setFavorites(updatedFavorites);
+      await AsyncStorage.setItem('favorites', JSON.stringify(updatedFavorites));
+      alert('Item removed from Favorites.');
     } catch (error) {
-      console.error('Error removing item from favorites:', error);
-      alert('Failed to remove item from favorites. Please try again.');
+      console.error('Error removing item from Favorites:', error);
+      alert('Failed to remove item from Favorites. Please try again.');
     }
   };
 
@@ -61,195 +72,160 @@ const Account = ({ navigation }) => {
     }
   };
 
-  // Create a new collection
-  const createCollection = () => {
-    if (!newCollectionName.trim()) {
-      alert('Please enter a collection name.');
-      return;
-    }
-    const newCollection = {
-      id: Date.now().toString(),
-      name: newCollectionName,
-      items: [],
-    };
-    setCollections([...collections, newCollection]);
-    setNewCollectionName('');
-    setModalVisible(false);
+  // Toggle follow/unfollow for an account
+  const toggleFollow = (accountId) => {
+    setFollowing(following.map(account => {
+      if (account.id === accountId) {
+        return { ...account, isFollowing: !account.isFollowing };
+      }
+      return account;
+    }));
   };
 
-  // Render favorite item
   const renderFavoriteItem = ({ item }) => (
     <TouchableOpacity
       onPress={() => navigation.navigate('ProductDetails', { product: item })}
-      style={styles.favoriteItem}
+      style={styles.itemContainer}
     >
-      <Image source={{ uri: item.postImage }} style={styles.favoriteImage} />
-      <Text style={styles.favoriteCaption}>{item.caption}</Text>
-      <Text style={styles.favoritePrice}>{item.price}</Text>
-      <TouchableOpacity
-        style={styles.favoriteAddToCartButton}
-        onPress={() => addToCart(item)}
-      >
-        <Text style={styles.favoriteAddToCartText}>Add to Cart</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.removeButton}
-        onPress={() => removeFromFavorites(item.id)}
-      >
-        <Text style={styles.removeButtonText}>Remove</Text>
-      </TouchableOpacity>
+      <Image source={{ uri: item.postImage }} style={styles.itemImage} />
+      <View style={styles.itemDetails}>
+        <Text style={styles.itemCaption}>{item.caption}</Text>
+        <Text style={styles.itemPrice}>{item.price}</Text>
+        <View style={styles.actionsContainer}>
+          <TouchableOpacity
+            style={styles.addToCartButton}
+            onPress={() => addToCart(item)}
+          >
+            <Text style={styles.addToCartText}>Add to Cart</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.removeButton}
+            onPress={() => removeFromFavorites(item.id)}
+          >
+            <Text style={styles.removeButtonText}>Remove</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </TouchableOpacity>
   );
 
-  // Render collection
-  const renderCollection = ({ item }) => (
+  const renderCollectionItem = ({ item }) => (
     <TouchableOpacity
-      style={styles.collectionItem}
+      style={styles.collectionContainer}
       onPress={() => navigation.navigate('CollectionDetails', { collection: item })}
     >
       <Image
-        source={
-          item.items.length > 0
-            ? { uri: item.items[0].postImage }
-            : { uri: 'https://via.placeholder.com/150' }
-        }
+        source={{ uri: item.items[0]?.postImage || 'https://via.placeholder.com/150' }}
         style={styles.collectionImage}
       />
       <Text style={styles.collectionName}>{item.name}</Text>
     </TouchableOpacity>
   );
 
+  const renderFollowingItem = ({ item }) => (
+    <View style={styles.followingItem}>
+      <Image source={{ uri: item.profileImage }} style={styles.followingImage} />
+      <View style={styles.followingDetails}>
+        <Text style={styles.followingName}>{item.name}</Text>
+        <Text style={styles.followingFollowers}>{item.followers} followers</Text>
+      </View>
+      <TouchableOpacity
+        style={[styles.followButton, item.isFollowing && styles.followingButton]}
+        onPress={() => toggleFollow(item.id)}
+      >
+        <Text style={[styles.followButtonText, item.isFollowing && styles.followingButtonText]}>
+          {item.isFollowing ? 'Following' : 'Follow'}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderHeader = () => (
+    <>
+      {/* Profile Header */}
+      <View style={styles.profileHeader}>
+        <Text style={styles.profileName}>FAREYABORHAN</Text>
+        <Text style={styles.profileUsername}>@fareyaborhan</Text>
+        <TouchableOpacity style={styles.editProfileButton}>
+          <Text style={styles.editProfileText}>Edit profile</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Tabs */}
+      <View style={styles.tabsContainer}>
+        <TouchableOpacity
+          style={styles.tab}
+          onPress={() => setActiveTab('Favorites')}
+        >
+          <Text style={[styles.tabText, activeTab === 'Favorites' && styles.activeTabText]}>
+            Favorites ({favorites.length})
+          </Text>
+          {activeTab === 'Favorites' && <View style={styles.tabUnderline} />}
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.tab}
+          onPress={() => setActiveTab('Following')}
+        >
+          <Text style={[styles.tabText, activeTab === 'Following' && styles.activeTabText]}>
+            Following ({following.length})
+          </Text>
+          {activeTab === 'Following' && <View style={styles.tabUnderline} />}
+        </TouchableOpacity>
+      </View>
+
+      {/* Following Header (only for Following tab) */}
+      {activeTab === 'Following' && (
+        <View style={styles.followingHeader}>
+          <Text style={styles.followingCount}>Following ({following.length})</Text>
+          <TouchableOpacity>
+            <Text style={styles.seeAllText}>See all</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Collections Section (only for Favorites tab) */}
+      {activeTab === 'Favorites' && (
+        <>
+          <View style={styles.collectionsHeader}>
+            <Text style={styles.sectionTitle}>Collections</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAllText}>See all</Text>
+            </TouchableOpacity>
+          </View>
+          {collections.length === 0 ? (
+            <Text style={styles.emptyText}>You have no collections.</Text>
+          ) : (
+            <FlatList
+              data={collections}
+              renderItem={renderCollectionItem}
+              keyExtractor={(item) => item.name}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.collectionsList}
+            />
+          )}
+        </>
+      )}
+    </>
+  );
+
+  const renderEmptyComponent = () => (
+    <Text style={styles.emptyText}>
+      {activeTab === 'Favorites' ? 'You have no favorite items.' : 'You are not following anyone.'}
+    </Text>
+  );
+
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Profile Section */}
-        <View style={styles.profileSection}>
-          <Text style={styles.profileName}>FAREYABORHAN</Text>
-          <Text style={styles.profileUsername}>@fareyaborhan</Text>
-          <TouchableOpacity style={styles.editProfileButton}>
-            <Text style={styles.editProfileText}>Edit profile</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Tabs */}
-        <View style={styles.tabs}>
-          <TouchableOpacity
-            onPress={() => setActiveTab('Favorites')}
-            style={styles.tab}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === 'Favorites' && styles.activeTabText,
-              ]}
-            >
-              Favorites ({favoriteItems.length})
-            </Text>
-            {activeTab === 'Favorites' && <View style={styles.tabUnderline} />}
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setActiveTab('Following')}
-            style={styles.tab}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === 'Following' && styles.activeTabText,
-              ]}
-            >
-              Following
-            </Text>
-            {activeTab === 'Following' && <View style={styles.tabUnderline} />}
-          </TouchableOpacity>
-        </View>
-
-        {/* Tab Content */}
-        {activeTab === 'Favorites' ? (
-          <>
-            {/* Collections Section */}
-            <View style={styles.collectionsSection}>
-              <View style={styles.collectionsHeader}>
-                <Text style={styles.sectionTitle}>Collections</Text>
-                <TouchableOpacity onPress={() => setModalVisible(true)}>
-                  <Text style={styles.createCollectionText}>+ Create</Text>
-                </TouchableOpacity>
-              </View>
-              <FlatList
-                data={collections}
-                renderItem={renderCollection}
-                keyExtractor={(item) => item.id}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.collectionsList}
-              />
-            </View>
-
-            {/* Favorites Section */}
-            <View style={styles.favoritesSection}>
-              <View style={styles.favoritesHeader}>
-                <Text style={styles.sectionTitle}>Favorites ({favoriteItems.length})</Text>
-                <TouchableOpacity>
-                  <Text style={styles.seeAllText}>See all</Text>
-                </TouchableOpacity>
-              </View>
-              {favoriteItems.length === 0 ? (
-                <Text style={styles.emptyText}>You have no favorite items.</Text>
-              ) : (
-                <FlatList
-                  data={favoriteItems}
-                  renderItem={renderFavoriteItem}
-                  keyExtractor={(item) => item.id}
-                  numColumns={2}
-                  contentContainerStyle={styles.favoritesList}
-                />
-              )}
-            </View>
-          </>
-        ) : (
-          <View style={styles.followingSection}>
-            <Text style={styles.emptyText}>Following section to be implemented.</Text>
-          </View>
-        )}
-      </ScrollView>
-
-      {/* Bottom Navigation */}
+      <FlatList
+        data={activeTab === 'Favorites' ? favorites : following}
+        renderItem={activeTab === 'Favorites' ? renderFavoriteItem : renderFollowingItem}
+        keyExtractor={(item) => item.id}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={renderEmptyComponent}
+        contentContainerStyle={styles.list}
+      />
       <BottomNav navigation={navigation} activeRoute="Account" />
-
-      {/* Modal for Creating a New Collection */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Create New Collection</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Collection Name"
-              value={newCollectionName}
-              onChangeText={setNewCollectionName}
-            />
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                onPress={() => setModalVisible(false)}
-                style={styles.modalButton}
-              >
-                <Text style={styles.modalButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={createCollection}
-                style={[styles.modalButton, styles.modalButtonCreate]}
-              >
-                <Text style={[styles.modalButtonText, styles.modalButtonCreateText]}>
-                  Create
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 };
@@ -259,12 +235,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  scrollContent: {
-    paddingBottom: 60, // Account for bottom nav bar
+  list: {
+    paddingBottom: 60, // Adjusted to account for the nav bar
   },
-  profileSection: {
+  profileHeader: {
     alignItems: 'center',
-    paddingVertical: 20,
+    padding: 20,
   },
   profileName: {
     fontSize: 24,
@@ -279,20 +255,21 @@ const styles = StyleSheet.create({
   editProfileButton: {
     borderWidth: 1,
     borderColor: '#333',
-    paddingVertical: 8,
-    paddingHorizontal: 20,
     borderRadius: 5,
+    paddingVertical: 5,
+    paddingHorizontal: 15,
     marginTop: 10,
   },
   editProfileText: {
     fontSize: 16,
     color: '#333',
   },
-  tabs: {
+  tabsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
+    marginHorizontal: 10,
   },
   tab: {
     paddingVertical: 10,
@@ -307,95 +284,51 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   tabUnderline: {
+    width: '50%',
     height: 2,
     backgroundColor: '#333',
-    width: '50%',
     marginTop: 5,
   },
-  collectionsSection: {
-    paddingVertical: 20,
-  },
-  collectionsHeader: {
+  itemContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 15,
-    marginBottom: 10,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  createCollectionText: {
-    fontSize: 16,
-    color: '#B577CD',
-  },
-  collectionsList: {
-    paddingHorizontal: 15,
-  },
-  collectionItem: {
-    marginRight: 15,
-    alignItems: 'center',
-  },
-  collectionImage: {
-    width: 150,
-    height: 150,
-    borderRadius: 10,
-  },
-  collectionName: {
-    fontSize: 14,
-    color: '#333',
-    marginTop: 5,
-  },
-  favoritesSection: {
-    paddingVertical: 20,
-  },
-  favoritesHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 15,
-    marginBottom: 10,
-  },
-  seeAllText: {
-    fontSize: 16,
-    color: '#B577CD',
-  },
-  favoritesList: {
-    paddingHorizontal: 15,
-  },
-  favoriteItem: {
-    flex: 1,
-    margin: 5,
+    marginVertical: 10,
+    marginHorizontal: 10,
     backgroundColor: '#f9f9f9',
     borderRadius: 10,
     padding: 10,
-    alignItems: 'center',
   },
-  favoriteImage: {
-    width: 150,
-    height: 150,
+  itemImage: {
+    width: 100,
+    height: 100,
     borderRadius: 10,
-    marginBottom: 10,
+    marginRight: 10,
   },
-  favoriteCaption: {
-    fontSize: 14,
+  itemDetails: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  itemCaption: {
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
-    textAlign: 'center',
   },
-  favoritePrice: {
+  itemPrice: {
     fontSize: 14,
     color: '#666',
     marginVertical: 5,
   },
-  favoriteAddToCartButton: {
+  actionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 5,
+  },
+  addToCartButton: {
     backgroundColor: '#B577CD',
     paddingVertical: 8,
     paddingHorizontal: 15,
     borderRadius: 5,
-    marginBottom: 5,
   },
-  favoriteAddToCartText: {
+  addToCartText: {
     color: '#fff',
     fontSize: 14,
     fontWeight: 'bold',
@@ -410,58 +343,99 @@ const styles = StyleSheet.create({
     color: '#333',
     fontSize: 14,
   },
-  followingSection: {
-    paddingVertical: 20,
+  collectionsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 10,
+    marginTop: 20,
+    marginBottom: 10,
   },
-  emptyText: {
-    fontSize: 16,
-    color: '#666',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
-    width: '80%',
-  },
-  modalTitle: {
+  sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 15,
   },
-  modalInput: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 5,
-    padding: 10,
+  seeAllText: {
+    fontSize: 14,
+    color: '#B577CD',
+  },
+  collectionsList: {
+    paddingHorizontal: 10,
+  },
+  collectionContainer: {
+    marginRight: 15,
+    alignItems: 'center',
+  },
+  collectionImage: {
+    width: 150,
+    height: 150,
+    borderRadius: 10,
+  },
+  collectionName: {
+    fontSize: 14,
+    color: '#333',
+    marginTop: 5,
+  },
+  emptyText: {
     fontSize: 16,
-    marginBottom: 15,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  modalButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-  },
-  modalButtonText: {
-    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 20,
     color: '#666',
   },
-  modalButtonCreate: {
-    backgroundColor: '#B577CD',
+  followingHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    marginVertical: 10,
   },
-  modalButtonCreateText: {
-    color: '#fff',
+  followingCount: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  followingItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 10,
+    marginHorizontal: 10,
+  },
+  followingImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  followingDetails: {
+    flex: 1,
+  },
+  followingName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  followingFollowers: {
+    fontSize: 14,
+    color: '#666',
+  },
+  followButton: {
+    borderWidth: 1,
+    borderColor: '#333',
+    borderRadius: 5,
+    paddingVertical: 5,
+    paddingHorizontal: 15,
+    backgroundColor: '#fff', // Light background for "Follow"
+  },
+  followingButton: {
+    backgroundColor: '#333', // Dark background for "Following"
+  },
+  followButtonText: {
+    fontSize: 14,
+    color: '#333', // Dark text for "Follow"
+  },
+  followingButtonText: {
+    color: '#fff', // White text for "Following"
   },
 });
 

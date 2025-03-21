@@ -1,10 +1,49 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const CollectionDetails = ({ route, navigation }) => {
   const { collection } = route.params;
+
+  const addToCart = async (item) => {
+    try {
+      const cartItemsString = await AsyncStorage.getItem('cartItems');
+      let cartItems = cartItemsString ? JSON.parse(cartItemsString) : [];
+
+      const existingItem = cartItems.find((cartItem) => cartItem.id === item.id);
+      if (existingItem) {
+        existingItem.quantity = (existingItem.quantity || 1) + 1;
+      } else {
+        cartItems.push({ ...item, quantity: 1 });
+      }
+
+      await AsyncStorage.setItem('cartItems', JSON.stringify(cartItems));
+      alert(`${item.caption} added to cart!`);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      alert('Failed to add item to cart. Please try again.');
+    }
+  };
+
+  const renderCollectionItem = ({ item }) => (
+    <TouchableOpacity
+      onPress={() => navigation.navigate('ProductDetails', { product: item })}
+      style={styles.itemContainer}
+    >
+      <Image source={{ uri: item.postImage }} style={styles.itemImage} />
+      <View style={styles.itemDetails}>
+        <Text style={styles.itemCaption}>{item.caption}</Text>
+        <Text style={styles.itemPrice}>{item.price}</Text>
+        <TouchableOpacity
+          style={styles.addToCartButton}
+          onPress={() => addToCart(item)}
+        >
+          <Text style={styles.addToCartText}>Add to Cart</Text>
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -15,9 +54,16 @@ const CollectionDetails = ({ route, navigation }) => {
         <Text style={styles.headerTitle}>{collection.name}</Text>
         <View style={styles.placeholder} />
       </View>
-      <View style={styles.content}>
-        <Text style={styles.placeholderText}>Collection details to be implemented.</Text>
-      </View>
+      {collection.items.length === 0 ? (
+        <Text style={styles.emptyText}>No items in this collection.</Text>
+      ) : (
+        <FlatList
+          data={collection.items}
+          renderItem={renderCollectionItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.list}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -44,8 +90,6 @@ const styles = StyleSheet.create({
   },
   backButton: {
     padding: 10,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 5,
   },
   headerTitle: {
     fontSize: 18,
@@ -55,13 +99,53 @@ const styles = StyleSheet.create({
   placeholder: {
     width: 48, // To balance the header layout
   },
-  content: {
+  list: {
+    paddingHorizontal: 10,
+    paddingBottom: 20,
+  },
+  itemContainer: {
+    flexDirection: 'row',
+    marginVertical: 10,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 10,
+    padding: 10,
+  },
+  itemImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+    marginRight: 10,
+  },
+  itemDetails: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  placeholderText: {
+  itemCaption: {
     fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  itemPrice: {
+    fontSize: 14,
+    color: '#666',
+    marginVertical: 5,
+  },
+  addToCartButton: {
+    backgroundColor: '#B577CD',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    alignSelf: 'flex-start',
+  },
+  addToCartText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  emptyText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 20,
     color: '#666',
   },
 });
