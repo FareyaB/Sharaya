@@ -1,53 +1,49 @@
+// screens/Search.js
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, Image, StyleSheet, Modal, SafeAreaView, ScrollView, Alert, TouchableWithoutFeedback } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
-import * as ImagePicker from 'expo-image-picker'; // Import expo-image-picker
+import * as ImagePicker from 'expo-image-picker';
 import BottomNav from '../components/BottomNav';
 
 // Hardcoded posts data with latitude and longitude (to simulate location-based filtering)
 const posts = [
-  { id: '1', username: 'nameera', caption: 'Bridal Lehenga', price: '$500', postImage: 'https://via.placeholder.com/300', profileImage: 'https://via.placeholder.com/40', size: 'M', color: 'Red', latitude: 23.8103, longitude: 90.4125 }, // Dhaka, Bangladesh
-  { id: '2', username: 'gulnaazkhan', caption: 'Blue Anarkali', price: '$300', postImage: 'https://via.placeholder.com/300', profileImage: 'https://via.placeholder.com/40', size: 'S', color: 'Blue', latitude: 23.8041, longitude: 90.4152 }, // Nearby Dhaka
-  { id: '3', username: 'nameera', caption: 'Red Bridal Dress', price: '$600', postImage: 'https://via.placeholder.com/300', profileImage: 'https://via.placeholder.com/40', size: 'L', color: 'Red', latitude: 24.8607, longitude: 67.0011 }, // Karachi, Pakistan
-  { id: '4', username: 'gulnaazkhan', caption: 'White Gown', price: '$400', postImage: 'https://via.placeholder.com/300', profileImage: 'https://via.placeholder.com/40', size: 'XS', color: 'White', latitude: 22.5726, longitude: 88.3639 }, // Kolkata, India
-  // Add more posts as needed
+  { id: '1', username: 'nameera', caption: 'Bridal Lehenga', price: '$500', postImage: require('../assets/no1.png'), profileImage: 'https://via.placeholder.com/40', size: 'M', color: 'Red', latitude: 23.8103, longitude: 90.4125 }, // Dhaka, Bangladesh
+  { id: '2', username: 'gulnaazkhan', caption: 'Blue Anarkali', price: '$300', postImage: require('../assets/no3.png'), profileImage: 'https://via.placeholder.com/40', size: 'S', color: 'Blue', latitude: 23.8041, longitude: 90.4152 }, // Nearby Dhaka
+  { id: '3', username: 'nameera', caption: 'Red Bridal Dress', price: '$600', postImage: require('../assets/no5.png'), profileImage: 'https://via.placeholder.com/40', size: 'L', color: 'Red', latitude: 24.8607, longitude: 67.0011 }, // Karachi, Pakistan
+  { id: '4', username: 'gulnaazkhan', caption: 'White Gown', price: '$400', postImage: require('../assets/no9.png'), profileImage: 'https://via.placeholder.com/40', size: 'XS', color: 'White', latitude: 22.5726, longitude: 88.3639 }, // Kolkata, India
 ];
 
 const Search = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredPosts, setFilteredPosts] = useState(posts);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
-  const [maxPrice, setMaxPrice] = useState(1000); // Single value for max price (min price fixed at $1)
+  const [maxPrice, setMaxPrice] = useState(1000);
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
-  const [selectedLocation, setSelectedLocation] = useState(null); // Store latitude, longitude, and deltas
-  const [radius, setRadius] = useState(50); // Radius in kilometers
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [radius, setRadius] = useState(50);
   const [selectedSellers, setSelectedSellers] = useState([]);
-  const [sizeDropdownVisible, setSizeDropdownVisible] = useState(false); // Toggle for size dropdown
-  const [colorDropdownVisible, setColorDropdownVisible] = useState(false); // Toggle for color dropdown
-  const [imagePickerModalVisible, setImagePickerModalVisible] = useState(false); // Toggle for image picker modal
-  const [selectedImage, setSelectedImage] = useState(null); // Store the selected image URI
+  const [sizeDropdownVisible, setSizeDropdownVisible] = useState(false);
+  const [colorDropdownVisible, setColorDropdownVisible] = useState(false);
+  const [imagePickerModalVisible, setImagePickerModalVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
-  // Suggested sellers (to be replaced with backend data)
   const suggestedSellers = [
     { id: '1', name: 'Nameera by Farooq', username: 'nameera' },
     { id: '2', name: 'Gulnaaz Khan Fashion', username: 'gulnaazkhan' },
   ];
 
-  // Available sizes and colors (to be expanded as needed)
   const sizes = ['XS', 'S', 'Regular', 'M', 'L', 'XL'];
   const colors = ['Carmine Red', 'White', 'Blue', 'Green'];
 
-  // Request location permission and get current location on mount
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert('Permission Denied', 'Location permission is required to use this feature.');
-        // Fallback to a default location (Dhaka, Bangladesh)
         setSelectedLocation({
           latitude: 23.8103,
           longitude: 90.4125,
@@ -67,7 +63,6 @@ const Search = ({ navigation }) => {
     })();
   }, []);
 
-  // Request camera and gallery permissions on mount
   useEffect(() => {
     (async () => {
       const cameraStatus = await ImagePicker.requestCameraPermissionsAsync();
@@ -81,9 +76,8 @@ const Search = ({ navigation }) => {
     })();
   }, []);
 
-  // Function to calculate distance between two coordinates (Haversine formula)
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371; // Radius of the Earth in kilometers
+    const R = 6371;
     const dLat = (lat2 - lat1) * (Math.PI / 180);
     const dLon = (lon2 - lon1) * (Math.PI / 180);
     const a =
@@ -91,43 +85,36 @@ const Search = ({ navigation }) => {
       Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
       Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c; // Distance in kilometers
+    const distance = R * c;
     return distance;
   };
 
-  // Filter posts based on search query, filters, and location
   const applyFilters = () => {
     let filtered = posts;
 
-    // Filter by search query
     if (searchQuery) {
       filtered = filtered.filter(post =>
         post.caption.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
-    // Filter by price range (min price fixed at $1, max price set by slider)
     filtered = filtered.filter(post => {
       const price = parseFloat(post.price.replace('$', ''));
       return price >= 1 && price <= maxPrice;
     });
 
-    // Filter by size (if selected)
     if (selectedSize) {
       filtered = filtered.filter(post => post.size === selectedSize);
     }
 
-    // Filter by color (if selected)
     if (selectedColor) {
       filtered = filtered.filter(post => post.color === selectedColor);
     }
 
-    // Filter by seller (if selected)
     if (selectedSellers.length > 0) {
       filtered = filtered.filter(post => selectedSellers.includes(post.username));
     }
 
-    // Filter by location (if selectedLocation and radius are set)
     if (selectedLocation) {
       filtered = filtered.filter(post => {
         const distance = calculateDistance(
@@ -144,7 +131,6 @@ const Search = ({ navigation }) => {
     setFilterModalVisible(false);
   };
 
-  // Reset filters without closing the modal
   const resetFilters = () => {
     setMaxPrice(1000);
     setSelectedSize('');
@@ -155,10 +141,8 @@ const Search = ({ navigation }) => {
     setSizeDropdownVisible(false);
     setColorDropdownVisible(false);
     setFilteredPosts(posts);
-    // Do not close the modal: removed setFilterModalVisible(false)
   };
 
-  // Toggle seller selection
   const toggleSeller = (username) => {
     setSelectedSellers(prev =>
       prev.includes(username)
@@ -167,7 +151,6 @@ const Search = ({ navigation }) => {
     );
   };
 
-  // Handle "Locate Me" button press
   const handleLocateMe = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
@@ -184,7 +167,6 @@ const Search = ({ navigation }) => {
     });
   };
 
-  // Open camera to take a photo
   const takePhoto = async () => {
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -200,7 +182,6 @@ const Search = ({ navigation }) => {
     }
   };
 
-  // Open gallery to select a photo
   const pickImageFromGallery = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -216,17 +197,8 @@ const Search = ({ navigation }) => {
     }
   };
 
-  // Mock function to search for similar products based on the image
   const searchSimilarProducts = (imageUri) => {
-    // In a real implementation, you would:
-    // 1. Upload the image to a backend.
-    // 2. Use an image recognition API (e.g., Google Cloud Vision) to identify the product.
-    // 3. Query the backend for similar products based on the recognition result.
-    // For now, we'll mock this by filtering posts based on a keyword (e.g., "Red").
-
-    // Mock image recognition result: let's assume the image contains a "Red" dress
     const mockRecognitionResult = { color: 'Red', type: 'Dress' };
-
     const filtered = posts.filter(post => {
       const matchesColor = post.color.toLowerCase() === mockRecognitionResult.color.toLowerCase();
       const matchesType = post.caption.toLowerCase().includes(mockRecognitionResult.type.toLowerCase());
@@ -242,7 +214,7 @@ const Search = ({ navigation }) => {
       style={styles.postContainer}
       onPress={() => navigation.navigate('ProductDetails', { product: item })}
     >
-      <Image source={{ uri: item.postImage }} style={styles.postImage} />
+      <Image source={item.postImage} style={styles.postImage} />
     </TouchableOpacity>
   );
 
@@ -281,7 +253,7 @@ const Search = ({ navigation }) => {
         />
         <TouchableOpacity
           style={styles.imageSearchButton}
-          onPress={() => setImagePickerModalVisible(true)} // Open image picker modal
+          onPress={() => setImagePickerModalVisible(true)}
         >
           <Ionicons name="camera" size={24} color="#333" />
         </TouchableOpacity>
@@ -414,7 +386,7 @@ const Search = ({ navigation }) => {
                           style={styles.dropdownItem}
                           onPress={() => {
                             setSelectedSize(item);
-                            setSizeDropdownVisible(false); // Close dropdown after selection
+                            setSizeDropdownVisible(false);
                           }}
                         >
                           <Text style={styles.dropdownItemText}>{item}</Text>
@@ -446,7 +418,7 @@ const Search = ({ navigation }) => {
                           style={styles.dropdownItem}
                           onPress={() => {
                             setSelectedColor(item);
-                            setColorDropdownVisible(false); // Close dropdown after selection
+                            setColorDropdownVisible(false);
                           }}
                         >
                           <Text style={styles.dropdownItemText}>{item}</Text>
@@ -529,7 +501,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: 10,
-    paddingTop: 40,
+    paddingTop: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
   },
