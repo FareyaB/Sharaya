@@ -504,6 +504,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
+    color: '#B577CD',
   },
   backButton: {
     padding: 5,
@@ -512,7 +513,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 40,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#B577CD',
     borderRadius: 20,
     paddingHorizontal: 15,
     fontSize: 16,
@@ -521,17 +522,18 @@ const styles = StyleSheet.create({
   imageSearchButton: {
     padding: 5,
     marginRight: 5,
+
   },
   filtersButton: {
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: '#B577CD',
     borderRadius: 5,
-    paddingVertical: 5,
-    paddingHorizontal: 15,
+    paddingVertical: 3,
+    paddingHorizontal: 10,
   },
   filtersButtonText: {
     fontSize: 16,
-    color: '#333',
+    color: '#B577CD',
   },
   tagsContainer: {
     flexDirection: 'row',

@@ -7,8 +7,8 @@ const BottomNav = ({ navigation, activeRoute }) => {
   const navItems = [
     { name: 'Home', icon: 'home', route: 'Home' },
     { name: 'Search', icon: 'search', route: 'Search' },
-    { name: 'Cart', icon: 'cart', route: 'Cart' },
-    { name: 'Notifications', icon: 'chatbubble-outline', route: 'Notifications' }, // Changed icon to messaging
+    { name: 'Cart', icon: 'cart', route: 'Cart' }, // Cart is in the middle (3rd position)
+    { name: 'Updates', icon: 'chatbubble-outline', route: 'Notifications' },
     { name: 'Account', icon: 'person', route: 'Account' },
   ];
 
@@ -23,7 +23,7 @@ const BottomNav = ({ navigation, activeRoute }) => {
           >
             <Ionicons
               name={item.icon}
-              size={24}
+              size={25} // Reduced from 30 to 20
               color={activeRoute === item.route ? '#B577CD' : '#333'}
             />
             <Text
@@ -44,23 +44,26 @@ const BottomNav = ({ navigation, activeRoute }) => {
 const styles = StyleSheet.create({
   navBar: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    height: 60,
+    height: 60, // Reduced from 70 to 60 to fit smaller icons and text
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#ddd',
     elevation: 5,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
+    shadowOffset: { width: 0, height: -5 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
+    paddingHorizontal: 10,
   },
   navItem: {
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   navText: {
-    fontSize: 12,
+    fontSize: 10, // Reduced from 12 to 10 to fit smaller layout
     marginTop: 2,
   },
 });
