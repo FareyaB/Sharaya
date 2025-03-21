@@ -8,7 +8,7 @@ const BottomNav = ({ navigation, activeRoute }) => {
     { name: 'Search', icon: 'search', route: 'Search' },
     { name: 'Cart', icon: 'cart', route: 'Cart' },
     { name: 'Notifications', icon: 'notifications', route: 'Notifications' },
-    { name: 'Saved', icon: 'bookmark', route: 'Saved' },
+    { name: 'Account', icon: 'person', route: 'Account' }, // Changed from Saved to Account
   ];
 
   return (
@@ -51,8 +51,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#ddd',
-    elevation: 5, // Add shadow for Android
-    shadowColor: '#000', // Add shadow for iOS
+    elevation: 5,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,

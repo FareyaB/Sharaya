@@ -29,27 +29,31 @@ const ProductDetails = ({ route, navigation }) => {
 
   const saveProduct = async () => {
     try {
-      const savedItemsString = await AsyncStorage.getItem('savedItems');
-      let savedItems = savedItemsString ? JSON.parse(savedItemsString) : [];
+      const favoriteItemsString = await AsyncStorage.getItem('favoriteItems');
+      let favoriteItems = favoriteItemsString ? JSON.parse(favoriteItemsString) : [];
 
-      const existingItem = savedItems.find((savedItem) => savedItem.id === product.id);
+      const existingItem = favoriteItems.find((favoriteItem) => favoriteItem.id === product.id);
       if (existingItem) {
-        alert(`${product.caption} is already saved!`);
+        alert(`${product.caption} is already in your favorites!`);
         return;
       }
 
-      savedItems.push(product);
-      await AsyncStorage.setItem('savedItems', JSON.stringify(savedItems));
-      alert(`${product.caption} saved!`);
+      favoriteItems.push(product);
+      await AsyncStorage.setItem('favoriteItems', JSON.stringify(favoriteItems));
+      alert(`${product.caption} added to favorites!`);
     } catch (error) {
-      console.error('Error saving product:', error);
-      alert('Failed to save product. Please try again.');
+      console.error('Error adding to favorites:', error);
+      alert('Failed to add to favorites. Please try again.');
     }
   };
 
   const handleBackPress = () => {
     console.log('Back button pressed');
-    navigation.goBack();
+    if (navigation && typeof navigation.goBack === 'function') {
+      navigation.goBack();
+    } else {
+      console.error('navigation.goBack is not available');
+    }
   };
 
   return (
@@ -121,10 +125,14 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
   },
   backButton: {
-    padding: 10, // Increased touchable area
+    padding: 10,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 5,
   },
   saveButton: {
-    padding: 10, // Increased touchable area
+    padding: 10,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 5,
   },
   headerTitle: {
     fontSize: 18,

@@ -10,7 +10,8 @@ import Cart from './screens/Cart';
 import ProductDetails from './screens/ProductDetails';
 import Search from './screens/Search';
 import Notifications from './screens/Notifications';
-import Saved from './screens/Saved';
+import Account from './screens/Account';
+import CollectionDetails from './screens/CollectionDetails'; // New import
 
 const Stack = createStackNavigator();
 
@@ -27,7 +28,8 @@ export default function App() {
           <Stack.Screen name="ProductDetails" component={ProductDetails} options={{ headerShown: false }} />
           <Stack.Screen name="Search" component={Search} options={{ headerShown: false }} />
           <Stack.Screen name="Notifications" component={Notifications} options={{ headerShown: false }} />
-          <Stack.Screen name="Saved" component={Saved} options={{ headerShown: false }} />
+          <Stack.Screen name="Account" component={Account} options={{ headerShown: false }} />
+          <Stack.Screen name="CollectionDetails" component={CollectionDetails} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>
     </PaperProvider>
