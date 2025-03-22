@@ -1,10 +1,11 @@
 // screens/Notifications.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import BottomNav from '../components/BottomNav';
 
-// Hardcoded data for Updates and Messages
+// Hardcoded data for Updates
 const updates = [
   { id: '1', title: 'Bollywood Wedding for you', subtitle: 'Check out this live event!', image: require('../assets/no1.png'), timestamp: '5h' },
   { id: '2', title: 'This could be your vibe', subtitle: 'A new collection you might like', image: require('../assets/no3.png'), timestamp: '18h' },
@@ -14,23 +15,36 @@ const updates = [
   { id: '6', title: 'Inspired by you', subtitle: 'Custom designs just for you', image: require('../assets/no3.png'), timestamp: '2d' },
 ];
 
-const messages = [
-  { id: '1', pageName: 'Nameera by Farooq', username: 'nameerabyfarooq', lastMessage: 'You: Hey!', timestamp: '3:06 AM', profileImage: require('../assets/no1.png') },
-  { id: '2', pageName: 'Nameera by Farooq', username: 'nameerabyfarooq', lastMessage: 'You: Hey!', timestamp: '3:06 AM', profileImage: require('../assets/no1.png') },
-  { id: '3', pageName: 'Nameera by Farooq', username: 'nameerabyfarooq', lastMessage: 'You: Hey!', timestamp: '3:06 AM', profileImage: require('../assets/no1.png') },
-  { id: '4', pageName: 'Nameera by Farooq', username: 'nameerabyfarooq', lastMessage: 'You: Hey!', timestamp: '3:06 AM', profileImage: require('../assets/no1.png') },
-  { id: '5', pageName: 'Ana', username: '196MKJHG', lastMessage: 'Ana: Hi!', timestamp: 'Yesterday', profileImage: require('../assets/no3.png') },
-];
-
 const Notifications = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState('Messages'); // Default to Messages tab
+  const [chatHistory, setChatHistory] = useState({});
+
+  // Load chat history from AsyncStorage
+  useEffect(() => {
+    const loadChatHistory = async () => {
+      try {
+        const chatHistoryString = await AsyncStorage.getItem('chatHistory');
+        const history = chatHistoryString ? JSON.parse(chatHistoryString) : {};
+        setChatHistory(history);
+      } catch (error) {
+        console.error('Error loading chat history:', error);
+      }
+    };
+
+    loadChatHistory();
+
+    // Reload chat history when the screen is focused
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadChatHistory();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const renderUpdateItem = ({ item }) => (
     <TouchableOpacity
       style={styles.updateItem}
       onPress={() => {
-        // Navigate to a relevant screen (e.g., live stream or product details)
-        // For now, we'll navigate to ProductDetails with a placeholder product
         navigation.navigate('ProductDetails', {
           product: {
             id: item.id,
@@ -54,22 +68,29 @@ const Notifications = ({ navigation }) => {
     </TouchableOpacity>
   );
 
-  const renderMessageItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.messageItem}
-      onPress={() => {
-        // Navigate to a chat screen (to be implemented)
-        navigation.navigate('Chat', { pageName: item.pageName, username: item.username });
-      }}
-    >
-      <Image source={item.profileImage} style={styles.messageImage} />
-      <View style={styles.messageTextContainer}>
-        <Text style={styles.pageName}>{item.pageName}</Text>
-        <Text style={styles.lastMessage}>{item.lastMessage}</Text>
-      </View>
-      <Text style={styles.timestamp}>{item.timestamp}</Text>
-    </TouchableOpacity>
-  );
+  const renderMessageItem = ({ item }) => {
+    const [username, messages] = item;
+    const lastMessage = messages[messages.length - 1];
+    const profileImage = lastMessage?.product?.profileImage || require('../assets/no1.png'); // Use a default image if none exists
+
+    return (
+      <TouchableOpacity
+        style={styles.messageItem}
+        onPress={() => {
+          navigation.navigate('NewMessage', { username }); // Navigate to NewMessage instead of Chat
+        }}
+      >
+        <Image source={profileImage} style={styles.messageImage} />
+        <View style={styles.messageTextContainer}>
+          <Text style={styles.pageName}>{username}</Text>
+          <Text style={styles.lastMessage}>
+            {lastMessage?.user === 'Current User' ? 'You: ' : ''}{lastMessage?.text}
+          </Text>
+        </View>
+        <Text style={styles.timestamp}>{lastMessage?.timestamp}</Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -104,7 +125,6 @@ const Notifications = ({ navigation }) => {
           <TouchableOpacity
             style={styles.newMessageButton}
             onPress={() => {
-              // Navigate to a screen to start a new message (to be implemented)
               navigation.navigate('NewMessage');
             }}
           >
@@ -114,9 +134,9 @@ const Notifications = ({ navigation }) => {
 
           {/* Messages List */}
           <FlatList
-            data={messages}
+            data={Object.entries(chatHistory)}
             renderItem={renderMessageItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item[0]}
             contentContainerStyle={styles.listContent}
             ListEmptyComponent={<Text style={styles.emptyText}>No messages available.</Text>}
             ListHeaderComponent={<Text style={styles.sectionHeader}>Contacts</Text>}

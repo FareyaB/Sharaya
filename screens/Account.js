@@ -1,9 +1,11 @@
+// screens/Account.js
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, FlatList, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BottomNav from '../components/BottomNav';
+import CustomText from '../components/CustomText';
 
-// Placeholder data for followed accounts (to be replaced with backend data later)
+// Placeholder data for followed accounts
 const followedAccounts = [
   { id: '1', name: 'Gulnaaz Khan Fashion', username: 'gulnaazkhan', followers: '6.4k', profileImage: 'https://via.placeholder.com/40' },
   { id: '2', name: 'Nameera by Fareya', username: 'nameera', followers: '143k', profileImage: 'https://via.placeholder.com/40' },
@@ -25,11 +27,75 @@ const Account = ({ navigation }) => {
     const loadData = async () => {
       try {
         const favoritesString = await AsyncStorage.getItem('favorites');
-        const favoritesData = favoritesString ? JSON.parse(favoritesString) : [];
+        let favoritesData = favoritesString ? JSON.parse(favoritesString) : [];
+
+        // If no favorites, add some test data
+        if (favoritesData.length === 0) {
+          favoritesData = [
+            {
+              id: '1',
+              username: 'nameera',
+              profileImage: 'https://via.placeholder.com/40',
+              postImage: 'https://via.placeholder.com/100',
+              caption: 'Bridal Lehenga',
+              price: '$500',
+              size: 'M',
+              color: 'Red',
+            },
+            {
+              id: '2',
+              username: 'gulnaazkhan',
+              profileImage: 'https://via.placeholder.com/40',
+              postImage: 'https://via.placeholder.com/100',
+              caption: 'Blue Anarkali',
+              price: '$300',
+              size: 'S',
+              color: 'Blue',
+            },
+          ];
+          await AsyncStorage.setItem('favorites', JSON.stringify(favoritesData));
+        }
         setFavorites(favoritesData);
 
         const collectionsString = await AsyncStorage.getItem('collections');
-        const collectionsData = collectionsString ? JSON.parse(collectionsString) : [];
+        let collectionsData = collectionsString ? JSON.parse(collectionsString) : [];
+
+        // If no collections, add some test data
+        if (collectionsData.length === 0) {
+          collectionsData = [
+            {
+              name: 'Wedding Collection',
+              items: [
+                {
+                  id: '1',
+                  username: 'nameera',
+                  profileImage: 'https://via.placeholder.com/40',
+                  postImage: 'https://via.placeholder.com/150',
+                  caption: 'Bridal Lehenga',
+                  price: '$500',
+                  size: 'M',
+                  color: 'Red',
+                },
+              ],
+            },
+            {
+              name: 'Party Wear',
+              items: [
+                {
+                  id: '2',
+                  username: 'gulnaazkhan',
+                  profileImage: 'https://via.placeholder.com/40',
+                  postImage: 'https://via.placeholder.com/150',
+                  caption: 'Blue Anarkali',
+                  price: '$300',
+                  size: 'S',
+                  color: 'Blue',
+                },
+              ],
+            },
+          ];
+          await AsyncStorage.setItem('collections', JSON.stringify(collectionsData));
+        }
         setCollections(collectionsData);
       } catch (error) {
         console.error('Error loading account data:', error);
@@ -89,20 +155,20 @@ const Account = ({ navigation }) => {
     >
       <Image source={{ uri: item.postImage }} style={styles.itemImage} />
       <View style={styles.itemDetails}>
-        <Text style={styles.itemCaption}>{item.caption}</Text>
-        <Text style={styles.itemPrice}>{item.price}</Text>
+        <CustomText weight="medium" style={styles.itemCaption}>{item.caption}</CustomText>
+        <CustomText style={styles.itemPrice}>{item.price}</CustomText>
         <View style={styles.actionsContainer}>
           <TouchableOpacity
             style={styles.addToCartButton}
             onPress={() => addToCart(item)}
           >
-            <Text style={styles.addToCartText}>Add to Cart</Text>
+            <CustomText weight="bold" style={styles.addToCartText}>Add to Cart</CustomText>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.removeButton}
             onPress={() => removeFromFavorites(item.id)}
           >
-            <Text style={styles.removeButtonText}>Remove</Text>
+            <CustomText style={styles.removeButtonText}>Remove</CustomText>
           </TouchableOpacity>
         </View>
       </View>
@@ -118,7 +184,7 @@ const Account = ({ navigation }) => {
         source={{ uri: item.items[0]?.postImage || 'https://via.placeholder.com/150' }}
         style={styles.collectionImage}
       />
-      <Text style={styles.collectionName}>{item.name}</Text>
+      <CustomText style={styles.collectionName}>{item.name}</CustomText>
     </TouchableOpacity>
   );
 
@@ -126,16 +192,16 @@ const Account = ({ navigation }) => {
     <View style={styles.followingItem}>
       <Image source={{ uri: item.profileImage }} style={styles.followingImage} />
       <View style={styles.followingDetails}>
-        <Text style={styles.followingName}>{item.name}</Text>
-        <Text style={styles.followingFollowers}>{item.followers} followers</Text>
+        <CustomText weight="medium" style={styles.followingName}>{item.name}</CustomText>
+        <CustomText style={styles.followingFollowers}>{item.followers} followers</CustomText>
       </View>
       <TouchableOpacity
         style={[styles.followButton, item.isFollowing && styles.followingButton]}
         onPress={() => toggleFollow(item.id)}
       >
-        <Text style={[styles.followButtonText, item.isFollowing && styles.followingButtonText]}>
+        <CustomText style={[styles.followButtonText, item.isFollowing && styles.followingButtonText]}>
           {item.isFollowing ? 'Following' : 'Follow'}
-        </Text>
+        </CustomText>
       </TouchableOpacity>
     </View>
   );
@@ -144,11 +210,8 @@ const Account = ({ navigation }) => {
     <>
       {/* Profile Header */}
       <View style={styles.profileHeader}>
-        <Text style={styles.profileName}>FAREYABORHAN</Text>
-        <Text style={styles.profileUsername}>@fareyaborhan</Text>
-        <TouchableOpacity style={styles.editProfileButton}>
-          <Text style={styles.editProfileText}>Edit profile</Text>
-        </TouchableOpacity>
+        <CustomText weight="bold" style={styles.profileName}>FAREYABORHAN</CustomText>
+        <CustomText style={styles.profileUsername}>@fareyaborhan</CustomText>
       </View>
 
       {/* Tabs */}
@@ -157,18 +220,18 @@ const Account = ({ navigation }) => {
           style={styles.tab}
           onPress={() => setActiveTab('Favorites')}
         >
-          <Text style={[styles.tabText, activeTab === 'Favorites' && styles.activeTabText]}>
+          <CustomText style={[styles.tabText, activeTab === 'Favorites' && styles.activeTabText]}>
             Favorites ({favorites.length})
-          </Text>
+          </CustomText>
           {activeTab === 'Favorites' && <View style={styles.tabUnderline} />}
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.tab}
           onPress={() => setActiveTab('Following')}
         >
-          <Text style={[styles.tabText, activeTab === 'Following' && styles.activeTabText]}>
+          <CustomText style={[styles.tabText, activeTab === 'Following' && styles.activeTabText]}>
             Following ({following.length})
-          </Text>
+          </CustomText>
           {activeTab === 'Following' && <View style={styles.tabUnderline} />}
         </TouchableOpacity>
       </View>
@@ -176,9 +239,9 @@ const Account = ({ navigation }) => {
       {/* Following Header (only for Following tab) */}
       {activeTab === 'Following' && (
         <View style={styles.followingHeader}>
-          <Text style={styles.followingCount}>Following ({following.length})</Text>
+          <CustomText weight="medium" style={styles.followingCount}>Following ({following.length})</CustomText>
           <TouchableOpacity>
-            <Text style={styles.seeAllText}>See all</Text>
+            <CustomText style={styles.seeAllText}>See all</CustomText>
           </TouchableOpacity>
         </View>
       )}
@@ -187,13 +250,13 @@ const Account = ({ navigation }) => {
       {activeTab === 'Favorites' && (
         <>
           <View style={styles.collectionsHeader}>
-            <Text style={styles.sectionTitle}>Collections</Text>
+            <CustomText weight="semiBold" style={styles.sectionTitle}>Collections</CustomText>
             <TouchableOpacity>
-              <Text style={styles.seeAllText}>See all</Text>
+              <CustomText style={styles.seeAllText}>See all</CustomText>
             </TouchableOpacity>
           </View>
           {collections.length === 0 ? (
-            <Text style={styles.emptyText}>You have no collections.</Text>
+            <CustomText style={styles.emptyText}>You have no collections.</CustomText>
           ) : (
             <FlatList
               data={collections}
@@ -210,9 +273,9 @@ const Account = ({ navigation }) => {
   );
 
   const renderEmptyComponent = () => (
-    <Text style={styles.emptyText}>
+    <CustomText style={styles.emptyText}>
       {activeTab === 'Favorites' ? 'You have no favorite items.' : 'You are not following anyone.'}
-    </Text>
+    </CustomText>
   );
 
   return (
@@ -236,33 +299,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   list: {
-    paddingBottom: 60, // Adjusted to account for the nav bar
+    paddingBottom: 60,
   },
   profileHeader: {
     alignItems: 'center',
     padding: 20,
+    paddingTop: 60, // Increased top padding to add space at the top
+    
   },
   profileName: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    color: '#B577CD',
   },
   profileUsername: {
     fontSize: 16,
     color: '#666',
     marginVertical: 5,
-  },
-  editProfileButton: {
-    borderWidth: 1,
-    borderColor: '#333',
-    borderRadius: 5,
-    paddingVertical: 5,
-    paddingHorizontal: 15,
-    marginTop: 10,
-  },
-  editProfileText: {
-    fontSize: 16,
-    color: '#333',
   },
   tabsContainer: {
     flexDirection: 'row',
@@ -272,7 +324,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   tab: {
-    paddingVertical: 10,
+    paddingVertical: 0,
     alignItems: 'center',
   },
   tabText: {
@@ -281,7 +333,6 @@ const styles = StyleSheet.create({
   },
   activeTabText: {
     color: '#333',
-    fontWeight: 'bold',
   },
   tabUnderline: {
     width: '50%',
@@ -309,7 +360,6 @@ const styles = StyleSheet.create({
   },
   itemCaption: {
     fontSize: 16,
-    fontWeight: 'bold',
     color: '#333',
   },
   itemPrice: {
@@ -325,18 +375,17 @@ const styles = StyleSheet.create({
   addToCartButton: {
     backgroundColor: '#B577CD',
     paddingVertical: 8,
-    paddingHorizontal: 15,
+    paddingHorizontal: 8,
     borderRadius: 5,
   },
   addToCartText: {
     color: '#fff',
     fontSize: 14,
-    fontWeight: 'bold',
   },
   removeButton: {
     backgroundColor: '#E5E7EB',
     paddingVertical: 8,
-    paddingHorizontal: 15,
+    paddingHorizontal: 8,
     borderRadius: 5,
   },
   removeButtonText: {
@@ -353,7 +402,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
     color: '#333',
   },
   seeAllText: {
@@ -392,7 +440,6 @@ const styles = StyleSheet.create({
   },
   followingCount: {
     fontSize: 16,
-    fontWeight: 'bold',
     color: '#333',
   },
   followingItem: {
@@ -412,7 +459,6 @@ const styles = StyleSheet.create({
   },
   followingName: {
     fontSize: 16,
-    fontWeight: 'bold',
     color: '#333',
   },
   followingFollowers: {
@@ -425,17 +471,17 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingVertical: 5,
     paddingHorizontal: 15,
-    backgroundColor: '#fff', // Light background for "Follow"
+    backgroundColor: '#fff',
   },
   followingButton: {
-    backgroundColor: '#333', // Dark background for "Following"
+    backgroundColor: '#333',
   },
   followButtonText: {
     fontSize: 14,
-    color: '#333', // Dark text for "Follow"
+    color: '#333',
   },
   followingButtonText: {
-    color: '#fff', // White text for "Following"
+    color: '#fff',
   },
 });
 
